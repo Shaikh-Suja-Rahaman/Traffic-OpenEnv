@@ -43,7 +43,7 @@ def run_agent():
     model = MODEL_NAME or "gpt-4o"
     
     client = OpenAI(api_key=api_key, base_url=base_url)
-    env_url = "http://localhost:8000"
+    env_url = "https://sujarahaman-traffic-rl.hf.space"
     
     for episode in range(3):
         # Start
