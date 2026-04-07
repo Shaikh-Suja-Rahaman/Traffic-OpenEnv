@@ -4,6 +4,9 @@ import requests
 import textwrap
 from typing import List
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Required Env Variables
 API_BASE_URL = os.environ.get("API_BASE_URL")
