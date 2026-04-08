@@ -152,7 +152,7 @@ def run_agent():
             meta = obs_data.get("metadata", {})
             cumulative = meta.get("cumulative_reward", sum(raw_rewards))
             # Hard cap for grading
-            score = max(0.0, min(1.0, (cumulative + 500) / 1000.0))
+            score = max(REWARD_MIN_EXCLUSIVE, min(REWARD_MAX_EXCLUSIVE, (cumulative + 500) / 1000.0))
             success = score >= 0.3
 
             rewards_str = ",".join(f"{r:.2f}" for r in rewards)

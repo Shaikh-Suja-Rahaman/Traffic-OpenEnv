@@ -78,7 +78,7 @@ class TrafficEnvironment(Environment):
             # Empirical mapping (since we don't know the exact max bounds without running an agent, 
             # we'll frame it so anything >= 0 is mapped roughly into a normalized scale)
             # Easy task gets mostly positive rewards. Medium gets mixed. Hard gets heavily penalized.
-            score = max(0.0, min(1.0, (self.cumulative_reward + 500) / 1000.0))
+            score = max(REWARD_MIN_EXCLUSIVE, min(REWARD_MAX_EXCLUSIVE, (self.cumulative_reward + 500) / 1000.0))
             # The hackathon asks for graders to produce score between 0-1.
             # We overwrite the final step reward with this score for the client to read, 
             # or the client computes based on cumulative reward. 
