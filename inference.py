@@ -42,13 +42,13 @@ def run_agent():
     base_url = API_BASE_URL or "https://api.openai.com/v1"
     model = MODEL_NAME or "gpt-4o"
     
-    client = OpenAI(api_key=api_key, base_url=base_url)
+    client = OpenAI(api_key=api_key, base_url=base_url, timeout=15.0)
     env_url = "https://sujarahaman-traffic-rl.hf.space"
     
     for episode in range(3):
         # Start
         try:
-            res = requests.post(f"{env_url}/reset")
+            res = requests.post(f"{env_url}/reset", timeout=10.0)
             res.raise_for_status()
             result = res.json()
             obs_data = result if "task_difficulty" in result else result.get("observation", {})
@@ -97,7 +97,7 @@ def run_agent():
             
             try:
                 # Step the environment
-                res = requests.post(f"{env_url}/step", json={"action": {"action_type": action}})
+                res = requests.post(f"{env_url}/step", json={"action": {"action_type": action}}, timeout=10.0)
                 res.raise_for_status()
                 result = res.json()
                 
