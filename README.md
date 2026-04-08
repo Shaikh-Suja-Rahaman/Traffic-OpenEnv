@@ -37,13 +37,26 @@ uvicorn server.app:app
 ```
 
 ### Baseline Inference Validation
-You must set your LLM credentials before running:
+The inference runner now uses a stateful OpenEnv client session (WebSocket), which is the recommended OpenEnv interaction pattern for multi-step episodes.
+
+Set the following variables before running:
 ```bash
 export API_BASE_URL="https://api.openai.com/v1"
 export MODEL_NAME="gpt-4o"
 export HF_TOKEN="sk-..."
+export OPENENV_BASE_URL="http://127.0.0.1:8000"
+# optional safety knobs
+# export LLM_TIMEOUT_S="45"
+# export EPISODE_STEP_GUARD="200"
 python inference.py
 ```
+
+For Hugging Face Spaces deployments, point `OPENENV_BASE_URL` to your Space URL, for example:
+```bash
+export OPENENV_BASE_URL="https://<your-space>.hf.space"
+python inference.py
+```
+
 *Note: A dummy API token will fallback gracefully but emit "error" states as expected in logs.*
 
 ### Validation
