@@ -14,6 +14,9 @@ API_BASE_URL = os.environ.get("API_BASE_URL")
 MODEL_NAME = os.environ.get("MODEL_NAME")
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
+REWARD_MIN_EXCLUSIVE = 0.01
+REWARD_MAX_EXCLUSIVE = 0.99
+
 
 def observation_to_dict(observation: object) -> dict:
     if isinstance(observation, dict):
@@ -23,8 +26,8 @@ def observation_to_dict(observation: object) -> dict:
     return dict(getattr(observation, "__dict__", {}))
 
 
-def clamp_unit_interval(value: float) -> float:
-    return max(0.0, min(1.0, value))
+def clamp_open_unit_interval(value: float) -> float:
+    return max(REWARD_MIN_EXCLUSIVE, min(REWARD_MAX_EXCLUSIVE, value))
 
 def build_user_prompt(step: int, last_action: str, last_reward: float, history: List[str], obs: dict) -> str:
     history_block = "\n".join(history[-4:]) if history else "None"
@@ -119,11 +122,11 @@ def run_agent():
                     obs_data = observation_to_dict(result.observation)
 
                     raw_reward = float(result.reward if result.reward is not None else obs_data.get("reward", 0.0))
-                    reward = clamp_unit_interval(raw_reward)
+                    reward = clamp_open_unit_interval(raw_reward)
                     done_val = bool(result.done if result.done is not None else obs_data.get("done", False))
                 except Exception as e:
                     raw_reward = 0.0
-                    reward = 0.0
+                    reward = clamp_open_unit_interval(raw_reward)
                     done_val = True
                     error_val = str(e).replace('\n', ' ')
 
@@ -139,8 +142,9 @@ def run_agent():
 
             if not done and step >= episode_step_guard:
                 done = True
+                guard_reward = REWARD_MIN_EXCLUSIVE
                 print(
-                    f"[STEP] step={step} action=KEEP_PHASE reward=0.00 done=true error=Episode step guard reached ({episode_step_guard})",
+                    f"[STEP] step={step} action=KEEP_PHASE reward={guard_reward:.2f} done=true error=Episode step guard reached ({episode_step_guard})",
                     flush=True,
                 )
 
