@@ -1,10 +1,10 @@
 from openenv.core.env_server.types import Action, Observation
 from pydantic import Field
-from typing import Dict
+from typing import Dict, Literal
 
 class TrafficAction(Action):
     """Action for the Traffic Signal RL environment."""
-    action_type: str = Field(..., description="Action to take. Must be 'KEEP_PHASE' or 'SWITCH_PHASE'.")
+    action_type: Literal["KEEP_PHASE", "SWITCH_PHASE"] = Field(..., description="Action to take.")
 
 class TrafficObservation(Observation):
     """Observation from the Traffic Signal RL environment."""

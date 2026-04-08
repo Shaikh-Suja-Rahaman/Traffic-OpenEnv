@@ -87,6 +87,8 @@ class TrafficEnvironment(Environment):
             # Auto-advance task index so next reset gives next difficulty
             if self.current_task_idx < len(self.DIFFICULTIES) - 1:
                 self.current_task_idx += 1
+            else:
+                self.current_task_idx = 0  # Loop back to easy for endless play!
             
         return self._get_observation(reward=step_reward, done=done)
 
