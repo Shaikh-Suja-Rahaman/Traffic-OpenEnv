@@ -22,6 +22,10 @@ def observation_to_dict(observation: object) -> dict:
         return observation.model_dump()
     return dict(getattr(observation, "__dict__", {}))
 
+
+def clamp_unit_interval(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
 def build_user_prompt(step: int, last_action: str, last_reward: float, history: List[str], obs: dict) -> str:
     history_block = "\n".join(history[-4:]) if history else "None"
     return textwrap.dedent(
@@ -75,6 +79,7 @@ def run_agent():
             step = 0
             done = False
             rewards = []
+            raw_rewards = []
             history = []
             last_action = "None"
             last_reward = 0.0
@@ -113,13 +118,16 @@ def run_agent():
                     result = env.step(TrafficAction(action_type=action))
                     obs_data = observation_to_dict(result.observation)
 
-                    reward = float(result.reward if result.reward is not None else obs_data.get("reward", 0.0))
+                    raw_reward = float(result.reward if result.reward is not None else obs_data.get("reward", 0.0))
+                    reward = clamp_unit_interval(raw_reward)
                     done_val = bool(result.done if result.done is not None else obs_data.get("done", False))
                 except Exception as e:
+                    raw_reward = 0.0
                     reward = 0.0
                     done_val = True
                     error_val = str(e).replace('\n', ' ')
 
+                raw_rewards.append(raw_reward)
                 rewards.append(reward)
                 last_reward = reward
                 done = done_val
@@ -138,7 +146,7 @@ def run_agent():
 
             # Compute Score inside [0.0, 1.0]. Easy tasks map higher positive reward. Hard tasks map lower.
             meta = obs_data.get("metadata", {})
-            cumulative = meta.get("cumulative_reward", sum(rewards))
+            cumulative = meta.get("cumulative_reward", sum(raw_rewards))
             # Hard cap for grading
             score = max(0.0, min(1.0, (cumulative + 500) / 1000.0))
             success = score >= 0.3
