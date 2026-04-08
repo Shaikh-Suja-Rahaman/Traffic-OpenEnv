@@ -8,6 +8,9 @@ from simulator import TrafficSimulator
 
 logger = logging.getLogger(__name__)
 
+REWARD_MIN_EXCLUSIVE = 0.01
+REWARD_MAX_EXCLUSIVE = 0.99
+
 class TrafficEnvironment(Environment):
     """
     Traffic Signal RL Environment.
@@ -27,6 +30,12 @@ class TrafficEnvironment(Environment):
         diff = self.DIFFICULTIES[min(self.current_task_idx, len(self.DIFFICULTIES) - 1)]
         self.simulator = TrafficSimulator(difficulty=diff)
         self.cumulative_reward = 0.0
+
+    def _normalize_step_reward(self, raw_reward: float) -> float:
+        # Map raw simulator rewards to the grading-friendly [0,1] band first,
+        # then enforce strict exclusivity via epsilon margins.
+        mapped = (raw_reward + 500.0) / 1000.0
+        return max(REWARD_MIN_EXCLUSIVE, min(REWARD_MAX_EXCLUSIVE, mapped))
 
     def reset(self) -> TrafficObservation:
         self._state = State(episode_id=str(uuid.uuid4()), step_count=0)
@@ -55,10 +64,11 @@ class TrafficEnvironment(Environment):
         if self._state.step_count >= self.MAX_STEPS:
             # Reached end of current task, reset for the next task automatically or just halt?
             # Standard RL environments return done. Up to client to call reset().
-            return self._get_observation(reward=0.0, done=True)
+            return self._get_observation(reward=REWARD_MIN_EXCLUSIVE, done=True)
             
-        step_reward = self.simulator.step(action.action_type)
-        self.cumulative_reward += step_reward
+        raw_step_reward = self.simulator.step(action.action_type)
+        step_reward = self._normalize_step_reward(raw_step_reward)
+        self.cumulative_reward += raw_step_reward
         self._state.step_count += 1
         
         done = (self._state.step_count >= self.MAX_STEPS)
