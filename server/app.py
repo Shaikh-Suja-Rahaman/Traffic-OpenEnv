@@ -4,7 +4,7 @@ except Exception as e:
     raise ImportError("openenv is required for the web interface.") from e
 
 from models import TrafficAction, TrafficObservation
-from traffic_environment import TrafficEnvironment
+from server.traffic_environment import TrafficEnvironment
 
 app = create_app(
     TrafficEnvironment,
